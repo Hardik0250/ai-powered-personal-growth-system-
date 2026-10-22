@@ -2,6 +2,13 @@
 
 A personal growth dashboard built with React (Vite), FastAPI, and SQLAlchemy. It tracks habits, goals, and journal entries, and includes an optional Gemini-powered coach.
 
+## Daily reminders, coach chat, and Gita reflections
+
+- Add reminders from **Reminders**. They repeat daily at the selected device-local time and are stored with the rest of the app data.
+- To receive notification pop-ups and alarm sounds, enable browser notifications on the Reminders page and allow notification permission. Because alarms run in the browser, keep the app open; alarms cannot ring if the browser/app is closed or the device is asleep. Background delivery also depends on browser and operating-system notification settings.
+- The **AI Coach** accepts follow-up messages and includes recent conversation turns when requesting advice. Chat history is held in the current page only and is not saved. Conversational Gemini responses require `GEMINI_API_KEY`; without it, the built-in coach provides an offline response.
+- The Overview shows a Bhagavad Gita verse reference and a daily English reflection paraphrase. The reflection is not a word-for-word translation.
+
 ## Run locally
 
 Requirements: Node.js 18+ and Python 3.10+.
