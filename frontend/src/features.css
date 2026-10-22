@@ -1,0 +1,40 @@
+.reminder-layout{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:16px;align-items:start}
+.reminder-panel{padding:20px}
+.reminder-panel .panel-heading{margin-bottom:18px}
+.reminder-panel .panel-heading h3{display:flex;align-items:center;gap:8px}
+.reminder-panel .panel-heading h3 svg{color:#a99aff}
+.notification-enable{width:100%;justify-content:center}
+.notification-enable:disabled{opacity:.55;cursor:not-allowed}
+.notification-note{display:flex;gap:8px;align-items:flex-start;margin:12px 0 20px;color:#8895b1;font-size:10px;line-height:1.6}
+.notification-note svg{flex:0 0 auto;color:#67d9c0}
+.reminder-form{display:grid;gap:9px}
+.reminder-form label{margin-top:4px;color:#b9c3dc;font-size:10px}
+.reminder-form input{width:100%;border:1px solid #303b57;border-radius:8px;background:#0b1222;color:#edf1ff;padding:11px 12px;outline:none}
+.reminder-form input:focus{border-color:var(--purple)}
+.reminder-form input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.8)}
+.reminder-form .full-btn{width:100%;margin-top:7px}
+.reminder-list{display:grid;gap:9px}
+.reminder-row{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid #26324b;border-radius:9px;background:#0d1527}
+.reminder-time{min-width:66px;color:#b5aaff;font-family:'Space Grotesk';font-size:16px;font-weight:600}
+.reminder-copy{display:grid;gap:4px;min-width:0;flex:1}
+.reminder-copy b{overflow:hidden;color:#e2e8fb;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.reminder-copy span{color:#8190ae;font-size:9px}
+.reminder-disabled .reminder-copy b,.reminder-disabled .reminder-time{color:#74809a}
+.reminder-toggle{display:grid;place-items:center;width:30px;height:30px;border:1px solid #303b57;border-radius:7px;background:#131c30;color:#73819e}
+.reminder-toggle.selected{border-color:#5c50a0;background:#8e7eff1c;color:#b7aaff}
+.gita-card{display:flex;align-items:flex-start;gap:14px;margin:0 0 16px;padding:17px 19px;border:1px solid #403c68;border-radius:12px;background:linear-gradient(110deg,#181a35,#111d2f)}
+.gita-icon{display:grid;place-items:center;flex:0 0 34px;height:34px;border:1px solid #766bc355;border-radius:10px;background:#8e7eff1a;color:#b8acff}
+.gita-copy>span{color:#aea3ff;font-size:8px;font-weight:700;letter-spacing:1.2px}
+.gita-copy p{margin:8px 0 6px;color:#e5e9fa;font-family:'Space Grotesk';font-size:14px;line-height:1.55}
+.gita-copy small{color:#8491ad;font-size:9px}
+.chat-message{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+.chat-message.user{flex-direction:row-reverse}
+.chat-message>div:last-child{max-width:84%;padding:11px 13px;border:1px solid #28344f;border-radius:4px 11px 11px 11px;background:#111a2d}
+.chat-message.user>div:last-child{border-color:#494276;border-radius:11px 4px 11px 11px;background:#201e3a}
+.chat-message .reply-title{margin-bottom:6px}
+.chat-message .reply-text{white-space:pre-wrap}
+.chat-message .mini-avatar span{font-size:11px;font-weight:700}
+.clear-chat{margin-top:20px}
+.reminder-panel .empty-state{padding:32px 8px}
+@media(max-width:900px){.reminder-layout{grid-template-columns:1fr}}
+@media(max-width:700px){.reminder-panel{padding:14px}.gita-card{gap:10px;padding:14px}.gita-copy p{font-size:12px}.chat-message>div:last-child{max-width:90%}}
