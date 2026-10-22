@@ -5,7 +5,7 @@ import hmac
 import os
 import secrets
 import time
-from typing import Optional
+from typing import Literal, Optional
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI, Depends, Header, HTTPException
@@ -69,6 +69,14 @@ class JournalEntry(Base):
     note = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class Reminder(Base):
+    __tablename__ = "reminders"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(120), nullable=False)
+    time = Column(String(5), nullable=False)
+    enabled = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI-Powered Personal Growth System", version="1.0.0")
@@ -99,8 +107,22 @@ class GoalCreate(BaseModel):
 class GoalProgress(BaseModel):
     progress: int = Field(ge=0, le=100)
 
+class CoachMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2000)
+
 class CoachRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
+    history: list[CoachMessage] = Field(default_factory=list, max_length=10)
+
+class ReminderCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+    time: str = Field(pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+
+class ReminderUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    time: Optional[str] = Field(default=None, pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+    enabled: Optional[bool] = None
 
 class LoginRequest(BaseModel):
     password: str = Field(min_length=16, max_length=256)
@@ -142,6 +164,10 @@ def habit_dict(h):
 def goal_dict(g):
     return {"id": g.id, "title": g.title, "category": g.category,
             "progress": g.progress, "target_date": g.target_date.isoformat() if g.target_date else None}
+
+def reminder_dict(reminder):
+    return {"id": reminder.id, "title": reminder.title, "time": reminder.time,
+            "enabled": reminder.enabled}
 
 @app.get("/")
 def root():
@@ -242,6 +268,43 @@ def delete_goal(goal_id: int, db: Session = Depends(get_db)):
     db.delete(goal); db.commit()
     return {"ok": True}
 
+@api.get("/reminders")
+def list_reminders(db: Session = Depends(get_db)):
+    reminders = db.query(Reminder).order_by(Reminder.time, Reminder.id).all()
+    return [reminder_dict(reminder) for reminder in reminders]
+
+@api.post("/reminders")
+def create_reminder(payload: ReminderCreate, db: Session = Depends(get_db)):
+    title = payload.title.strip()
+    if not title:
+        raise HTTPException(status_code=422, detail="Reminder title cannot be blank")
+    reminder = Reminder(title=title, time=payload.time)
+    db.add(reminder); db.commit(); db.refresh(reminder)
+    return reminder_dict(reminder)
+
+@api.patch("/reminders/{reminder_id}")
+def update_reminder(reminder_id: int, payload: ReminderUpdate, db: Session = Depends(get_db)):
+    reminder = db.query(Reminder).filter(Reminder.id == reminder_id).first()
+    if not reminder:
+        raise HTTPException(status_code=404, detail="Reminder not found")
+    updates = payload.model_dump(exclude_unset=True)
+    if "title" in updates:
+        updates["title"] = updates["title"].strip()
+        if not updates["title"]:
+            raise HTTPException(status_code=422, detail="Reminder title cannot be blank")
+    for field, value in updates.items():
+        setattr(reminder, field, value)
+    db.commit(); db.refresh(reminder)
+    return reminder_dict(reminder)
+
+@api.delete("/reminders/{reminder_id}")
+def delete_reminder(reminder_id: int, db: Session = Depends(get_db)):
+    reminder = db.query(Reminder).filter(Reminder.id == reminder_id).first()
+    if not reminder:
+        raise HTTPException(status_code=404, detail="Reminder not found")
+    db.delete(reminder); db.commit()
+    return {"ok": True}
+
 @api.post("/coach")
 def coach(payload: CoachRequest, db: Session = Depends(get_db)):
     habits = db.query(Habit).all()
@@ -258,9 +321,13 @@ def coach(payload: CoachRequest, db: Session = Depends(get_db)):
                 "Act as a supportive personal growth coach. Give practical, specific, non-medical advice. "
                 "Use concise headings and a 3-step action plan."
             )
+            conversation = "\n".join(
+                f"{'User' if message.role == 'user' else 'Coach'}: {message.content}"
+                for message in payload.history[-10:]
+            )
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
-                contents=f"{context}\nUser request: {user_message}"
+                contents=f"{context}\nConversation so far:\n{conversation}\nUser: {user_message}"
             )
             return {"reply": response.text or "Try choosing one small action and completing it today.", "mode": "Gemini AI"}
         except Exception:
